@@ -1,0 +1,179 @@
+Sub Awal()
+    Range("N1").Value = 1
+End Sub
+
+Sub Akhir()
+Dim Karyawan As Integer
+    Karyawan = Range("N2").Value
+    Range("N1").Value = Karyawan
+End Sub
+    
+Sub Berikutnya()
+Dim Nomor, Karyawan As Integer
+    Nomor = Range("N1").Value
+    Karyawan = Range("N2").Value
+    If Nomor < Karyawan Then
+        Nomor = Nomor + 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Sebelumnya()
+Dim Nomor As Integer
+    Nomor = Range("N1").Value
+    If Nomor > 1 Then
+        Nomor = Nomor - 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Lihat()
+    Application.Dialogs(xlDialogPrintPreview).Show
+End Sub
+
+Sub Cetak()
+    Application.Dialogs(xlDialogPrint).Show
+End Sub
+
+Sub CetakSemua()
+Dim Karyawan, i As Integer
+    Karyawan = Range("N2").Value
+    Awal
+    For i = 1 To Karyawan
+        ActiveSheet.PrintOut
+        Berikutnya
+    Next
+End Sub
+
+Sub Konversi(IDKaryawan As String)
+Dim Bulan As String
+    Bulan = Range("I2").Value
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+        "D:\Upload Youtube\Slip Gaji E-mail\SG-" + Bulan + "-" + IDKaryawan + ".pdf", _
+        Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=False
+End Sub
+
+Sub ExportKePDF()
+Dim JmlKaryawan, i As Integer
+Dim Id_Kar As String
+    If MsgBox("Semua slip gaji karyawan akan di-export ke file PDF. Lanjutkan proses export?", vbYesNo + vbQuestion, "Konfirmasi Export") = vbYes Then
+        JmlKaryawan = Range("N2").Value
+        Awal
+        For i = 1 To JmlKaryawan
+            Id_Kar = Range("C6").Value
+            Konversi (Id_Kar)
+            Berikutnya
+        Next
+    End If
+End Sub
+
+Sub KirimEmail(AkunPengirim, PasswordPengirim, AkunTujuan, Judul, IsiEmail, Lampiran As String)
+
+    On Error GoTo Err
+
+    Dim EmailBaru As Object
+    Dim PengaturanEmail As Object
+    Dim fields As Variant
+    Dim URLKonfigurasi As String
+
+    Set EmailBaru = CreateObject("CDO.Message")
+    Set PengaturanEmail = CreateObject("CDO.Configuration")
+
+    ' load konfigurasi default
+    PengaturanEmail.Load -1
+
+    Set fields = PengaturanEmail.fields
+
+    'Pengaturan semua kelengkapan email
+
+    With EmailBaru
+        .Subject = Judul
+        .From = AkunPengirim
+        .To = AkunTujuan
+        .CC = "" 'Tulis alamat email tembusan (jika dibutuhkan)
+        .BCC = "" 'Tulis alamat email tembusan (jika dibutuhkan)
+        .textbody = IsiEmail
+    .AddAttachment Lampiran
+
+    End With
+
+    URLKonfigurasi = "http://schemas.microsoft.com/cdo/configuration"
+
+    With fields
+        'Mengaktifkan SSL Authentication
+        .Item(URLKonfigurasi & "/smtpusessl") = True
+
+        'Mengaktifkan SMTP authentication Enabled=true (1)
+        .Item(URLKonfigurasi & "/smtpauthenticate") = 1
+
+        'Pengaturan server & port SMTP server
+        .Item(URLKonfigurasi & "/smtpserver") = "smtp.gmail.com"
+        .Item(URLKonfigurasi & "/smtpserverport") = 465
+        .Item(URLKonfigurasi & "/sendusing") = 2
+
+        'Pengaturan username dan password akun Gmail pengirim
+        .Item(URLKonfigurasi & "/sendusername") = AkunPengirim
+        .Item(URLKonfigurasi & "/sendpassword") = PasswordPengirim
+
+        'Update hasil konfigurasi
+        .Update
+
+    End With
+    EmailBaru.Configuration = PengaturanEmail
+    EmailBaru.Send
+
+Exit_Err:
+
+    Set EmailBaru = Nothing
+    Set PengaturanEmail = Nothing
+    Exit Sub
+
+Err:
+    Select Case Err.Number
+
+    Case -2147220973  'Kemungkinan kesalahan karena masalah koneksi internet
+        MsgBox "Tidak ada koneksi internet, atau koneksi internet anda bermasalah!!  -- " & Err.Description
+
+    Case -2147220975  'Kesalahan memasukkan User ID atau password
+        MsgBox "Username atau Password salah atau tidak cocok!!  -- " & Err.Description
+
+    Case Else   'Kesalahan lain
+        MsgBox "Terjadi kesalahan ketikan mengirim email!!  -- " & Err.Description
+    End Select
+
+    Resume Exit_Err
+
+End Sub
+
+
+Sub ExportKirim()
+
+Dim Id_Kar, Nama, Bulan, pengirim, pass, penerima, judulpesan, isi, fileslipgaji As String
+Dim JmlKaryawan, i As Integer
+
+    If MsgBox("Semua slip gaji karyawan akan di-export ke file PDF dan dikirim ke akun e-mail setiap karyawan." + vbNewLine + "Lanjutkan proses export & kirim email?", vbYesNo + vbQuestion, "Konfirmasi Export & Kirim") = vbYes Then
+        Bulan = Range("I2").Value
+        JmlKaryawan = Range("N2").Value
+        Awal
+        For i = 1 To JmlKaryawan
+            Id_Kar = Range("C6").Value
+            Nama = Range("C7").Value
+            Konversi (Id_Kar)
+            
+            '----- KETIK NAMA AKUN GMAIL PENGIRIM -----
+            pengirim = "namaakun@gmail.com"
+            ' ----- KETIK PASSWORD AKUN GMAIL PENGIRIM -----
+            pass = "**********"
+            
+            penerima = Range("N3").Value
+            judulpesan = "Slip Gaji " + Bulan + "-" + Nama
+            isi = "Slip Gaji " + Bulan + "-" + Nama
+            fileslipgaji = "D:\Upload Youtube\Slip Gaji E-mail\SG-" + Bulan + "-" + Id_Kar + ".pdf"
+            
+            Call KirimEmail(pengirim, pass, penerima, judulpesan, isi, fileslipgaji)
+            Berikutnya
+        Next
+        
+        MsgBox ("Semua Slip Gaji telah berhasil dikirim!")
+    End If
+End Sub

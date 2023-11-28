@@ -1,0 +1,90 @@
+*{
+	font-family: segoe ui;
+}
+body{
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	background-image: url('../img/company.jpg');
+	background-size: 100% ;
+	position: fixed;
+	background-repeat: no-repeat;
+}
+.body{
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	background-color: rgba(0,0,0,0.6); 
+}
+.sim h1{
+	margin: 0px;
+	color: #fff;
+	font-family: arial;
+	font-size: 80px;
+	margin-top: 250px;
+	margin-left: 70px;
+	font-weight: 100;
+}
+.sim p{
+	color: #fff;
+	font-size: 40px;
+	font-weight: 100;
+	margin-left: 200px;
+	margin-top: 3px;
+}
+.kotak{
+	width: 400px;
+	float: right;
+	min-height: 300px;
+	border-radius: 5px;
+	margin-top: -260px;
+	margin-right: 100px;
+	border: 1px solid #eee;
+	background-color: rgba(150, 139, 139,0.8);
+}
+.kotak hr{
+	width: 96%;
+	color: #fff;
+	border-radius: 100%;
+}
+.kotak h1{
+
+	font-size: 30px;
+	font-weight: 100;
+	margin-left:15px;
+}
+.kotak p{
+	margin: 0px;
+	text-indent: 5px;
+	float: left;
+	font-size: 17px;
+	color:#fff;
+}
+input[type=text],input[type=password]{
+	width: 85%;
+	height: 40px;
+	color: #8c8686;
+	margin: 10px auto;
+	margin-left: 30px;
+	font-size: 15px;
+	text-indent: 5px;
+	border: 1px;
+	border-radius: 5px;
+	font-family: arial;
+}
+input[type=submit]{
+	float: left;
+	color: #fff;
+	margin-top: 15px;
+	padding: 8px 30px;
+	margin-left: 30px;
+	border-radius: 5px;
+	font-size: 15px;
+	border:1px;
+	cursor: pointer;
+	background-color: #736cc1;
+}
+input[type=submit]:hover{
+	background-color: #615caa;
+}

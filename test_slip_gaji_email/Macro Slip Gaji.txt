@@ -1,0 +1,46 @@
+Sub Awal()
+    Range("N1").Value = 1
+End Sub
+
+Sub Akhir()
+Dim Karyawan As Integer
+    Karyawan = Range("N2").Value
+    Range("N1").Value = Karyawan
+End Sub
+    
+Sub Berikutnya()
+Dim Nomor, Karyawan As Integer
+    Nomor = Range("N1").Value
+    Karyawan = Range("N2").Value
+    If Nomor < Karyawan Then
+        Nomor = Nomor + 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Sebelumnya()
+Dim Nomor As Integer
+    Nomor = Range("N1").Value
+    If Nomor > 1 Then
+        Nomor = Nomor - 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Lihat()
+    Application.Dialogs(xlDialogPrintPreview).Show
+End Sub
+
+Sub Cetak()
+    Application.Dialogs(xlDialogPrint).Show
+End Sub
+
+Sub CetakSemua()
+Dim Karyawan, i As Integer
+    Karyawan = Range("N2").Value
+    Awal
+    For i = 1 To Karyawan
+        ActiveSheet.PrintOut
+        Berikutnya
+    Next
+End Sub

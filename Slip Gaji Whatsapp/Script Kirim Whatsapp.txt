@@ -1,0 +1,217 @@
+Sub Awal()
+    Range("N1").Value = 1
+End Sub
+
+Sub Akhir()
+Dim Karyawan As Integer
+    Karyawan = Sheet1.Cells(3, 3)
+    Range("N1").Value = Karyawan
+End Sub
+    
+Sub Berikutnya()
+Dim Nomor, Karyawan As Integer
+    Nomor = Range("N1").Value
+    Karyawan = Sheet1.Cells(3, 3)
+    If Nomor < Karyawan Then
+        Nomor = Nomor + 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Sebelumnya()
+Dim Nomor As Integer
+    Nomor = Range("N1").Value
+    If Nomor > 1 Then
+        Nomor = Nomor - 1
+    End If
+    Range("N1").Value = Nomor
+End Sub
+
+Sub Lihat()
+    Application.Dialogs(xlDialogPrintPreview).Show
+End Sub
+
+Sub Cetak()
+    Application.Dialogs(xlDialogPrint).Show
+End Sub
+
+Sub CetakSemua()
+Dim Karyawan, i As Integer
+    Karyawan = Sheet1.Cells(3, 3)
+    Awal
+    For i = 1 To Karyawan
+        ActiveSheet.PrintOut
+        Berikutnya
+    Next
+End Sub
+
+Sub ExportKePDF(IDKaryawan As String)
+Dim FolderSlipGaji, Bulan As String
+    FolderSlipGaji = Sheet1.Cells(4, 3)
+    Bulan = Sheet1.Cells(1, 3)
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+        FolderSlipGaji + "\SG-" + Bulan + "-" + IDKaryawan + ".pdf", _
+        Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=False
+End Sub
+
+Sub ExportSemuaKePDF()
+Dim JmlKaryawan, i As Integer
+Dim Id_Kar As String
+    If MsgBox("Semua slip gaji karyawan akan di-export ke file PDF. Lanjutkan proses export?", vbYesNo + vbQuestion, "Konfirmasi Export") = vbYes Then
+        JmlKaryawan = Sheet1.Cells(3, 3)
+        Awal
+        For i = 1 To JmlKaryawan
+            Id_Kar = Range("B6").Value
+            ExportKePDF (Id_Kar)
+            Berikutnya
+        Next
+    End If
+End Sub
+
+Sub KirimWhatsapp()
+    On Error GoTo ErrorHandler
+    Dim Whatsapp As ChromeDriver
+    Dim Baris, Delay, DelayLogin, DelayEvent As Long
+    Dim NamaPerusahaan, NamaKaryawan, IDKaryawan, NoWhatsapp, Bulan, FolderSlipGaji, PathSlipGaji As String
+    Dim BarCodeWhatsapp, KotakPesan, TombolAttachment, TombolDocument, TombolSend As String
+    Dim TombolMenu, MenuLogout, TombolLogout As String
+    Dim TampilDelay As Boolean
+
+    Set Whatsapp = New ChromeDriver
+    
+    ' ===========================================================================
+    ' KETIKKAN TEKS YANG INGIN DIGUNAKAN SEBAGAI NAMA PENGIRIM DI SINI
+    NamaPerusahaan = "(HRD PT.PCC)"
+    
+    ' KETIKKAN FOLDER PENYIMPANAN SLIP GAJI
+    FolderSlipGaji = Sheet1.Cells(4, 3)
+    
+    ' TENTUKAN LAMA DELAY UNTUK LOGIN DAN UNTUK SETIAP EVENT
+    DelayLogin = 50000
+    DelayEvent = 12500
+    TampilDelay = True
+    
+    ' LAKUKAN INSPECT ELEMENT UNTUK MENCARI POSISI OBJEK BERIKUT INI
+    BarCodeWhatsapp = "/html/body/div[1]/div/div/div[2]/div[1]/div/div[2]/div/canvas"
+    KotakPesan = "/html/body/div[1]/div/div/div[4]/div/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[2]"
+    TombolAttachment = "/html/body/div[1]/div/div/div[4]/div/footer/div[1]/div/span[2]/div/div[1]/div[2]/div/div/span"
+    TombolDocument = "/html/body/div[1]/div/div/div[4]/div/footer/div[1]/div/span[2]/div/div[1]/div[2]/div/span/div/div/ul/li[4]/button/input"
+    TombolSend = "/html/body/div[1]/div/div/div[2]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div/span"
+    TombolMenu = "/html/body/div[1]/div/div/div[3]/div/header/div[2]/div/span/div[3]/div/span"
+    MenuLogout = "/html/body/div[1]/div/div/div[3]/div/header/div[2]/div/span/div[3]/span/div/ul/li[5]/div[1]"
+    TombolLogout = "/html/body/div[1]/div/span[2]/div/div/div/div/div/div/div[3]/div/div[2]"
+    
+    ' ===========================================================================
+    
+    ' OPEN WHATSAPP
+    Whatsapp.Get "https://web.whatsapp.com"
+    For Delay = 1 To DelayLogin
+        DoEvents
+        If TampilDelay = True Then
+            Sheet2.Cells(3, 14) = Delay
+        End If
+    Next Delay
+
+    ' SCAN BARCODE
+    If Whatsapp.FindElementByXPath(BarCodeWhatsapp).IsPresent = False Then
+        
+        Else
+            MsgBox "Silakan login ke Whatsapp terlebih dahulu", vbCritical, "Error"
+        Exit Sub
+    End If
+    
+    For Baris = 9 To Sheet1.Cells(3, 3) + 8
+        DoEvents
+        NamaKaryawan = Sheet1.Cells(Baris, 2)
+        IDKaryawan = Sheet1.Cells(Baris, 3)
+        NoWhatsapp = Sheet1.Cells(Baris, 18)
+        Bulan = Sheet1.Cells(1, 3)
+        Pesan = "Hallo " & NamaKaryawan & ", berikut ini adalah slip gaji untuk bulan " & Bulan & "." & vbNewLine & "Terima Kasih." & vbNewLine & NamaPerusahaan & vbCrLf
+        PathSlipGaji = FolderSlipGaji + "\SG-" + Bulan + "-" + IDKaryawan + ".pdf"
+        
+        ' SELECT CONTACT
+        Whatsapp.Get "https://web.whatsapp.com/send?phone=" & NoWhatsapp & "&text=&source=&data="
+        For Delay = 1 To DelayEvent
+            If TampilDelay = True Then
+                Sheet2.Cells(3, 14) = Delay
+            End If
+        Next Delay
+        
+        ' SEND MESSAGE
+        Whatsapp.FindElementByXPath(KotakPesan).SendKeys Pesan
+        For Delay = 1 To DelayEvent
+            If TampilDelay = True Then
+                Sheet2.Cells(3, 14) = Delay
+            End If
+        Next Delay
+        
+        ' ATTACH
+        Whatsapp.FindElementByXPath(TombolAttachment).Click
+        For waktu = 1 To DelayEvent
+            If TampilDelay = True Then
+                Sheet2.Cells(3, 14) = waktu
+            End If
+        Next waktu
+
+        ' ATTACH DOCUMENT
+        Whatsapp.FindElementByXPath(TombolDocument).SendKeys PathSlipGaji
+        For Delay = 1 To DelayEvent
+            If TampilDelay = True Then
+                Sheet2.Cells(3, 14) = Delay
+            End If
+        Next Delay
+
+        ' SEND
+        Whatsapp.FindElementByXPath(TombolSend).Click
+        For Delay = 1 To DelayEvent
+            If TampilDelay = True Then
+                Sheet2.Cells(3, 14) = Delay
+            End If
+        Next Delay
+
+    Next Baris
+    
+    ' LOG OUT
+    Whatsapp.FindElementByXPath(TombolMenu).Click
+    For Delay = 1 To DelayEvent / 2
+        If TampilDelay = True Then
+            Sheet2.Cells(3, 14) = Delay
+        End If
+    Next Delay
+    
+    Whatsapp.FindElementByXPath(MenuLogout).Click
+    For Delay = 1 To DelayEvent / 2
+        If TampilDelay = True Then
+            Sheet2.Cells(3, 14) = Delay
+        End If
+    Next Delay
+    
+    Whatsapp.FindElementByXPath(TombolLogout).Click
+    For Delay = 1 To DelayEvent / 2
+        If TampilDelay = True Then
+            Sheet2.Cells(3, 14) = Delay
+        End If
+    Next Delay
+    
+ErrorHandler:
+    Select Case Err.Number
+        Case 0
+        Resume Next
+        Case 7
+        Resume Next
+        Case 20
+        Resume Next
+        Case Else
+        MsgBox "Err Desc: " & Err.Description & vbCrLf & "Err Number: " & Err.Number, vbCritical, "Error"
+        Resume Next
+    End Select
+End Sub
+
+Sub CariKaryawan()
+    Dim NoUrut As Integer
+    
+    NoUrut = InputBox("Ketikkan Nomor Urut Karwayan:", "Cari Data Karyawan", 1)
+    If (NoUrut > 0) And (NoUrut <= Sheet1.Cells(3, 3)) Then
+        Range("N1").Value = NoUrut
+    End If
+End Sub
